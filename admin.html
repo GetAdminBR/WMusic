@@ -1,0 +1,1763 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMusic Admin Panel</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+        :root {
+            --bg-0: #f6f8f4;
+            --bg-1: #eef3eb;
+            --surface: rgba(255, 255, 255, 0.72);
+            --surface-strong: rgba(255, 255, 255, 0.9);
+            --line: rgba(26, 54, 41, 0.18);
+            --text: #1f2f29;
+            --muted: #5f7068;
+            --accent: #2f9d73;
+            --accent-strong: #207354;
+            --warn: #f18d34;
+            --danger: #dc5757;
+            --shadow: 0 16px 40px rgba(39, 66, 56, 0.12);
+            --radius-xl: 22px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(800px 420px at -8% -6%, rgba(47, 157, 115, 0.2), transparent 60%),
+                radial-gradient(680px 360px at 105% 10%, rgba(241, 141, 52, 0.18), transparent 56%),
+                linear-gradient(160deg, var(--bg-0), var(--bg-1));
+        }
+
+        .app {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 24px 18px 34px;
+        }
+
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .brand-title {
+            margin: 0;
+            font-family: "Urbanist", "Segoe UI", sans-serif;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            font-size: clamp(24px, 3.8vw, 34px);
+        }
+
+        .brand-sub {
+            margin: 0;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .auth-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .auth-inline input {
+            width: 120px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 7px 8px;
+            font-size: 13px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text);
+        }
+
+        .auth-inline input:focus {
+            border-color: rgba(47, 157, 115, 0.6);
+        }
+
+        .auth-inline .btn {
+            padding: 8px 10px;
+            width: auto;
+        }
+
+        .dashboard.locked {
+            display: none;
+        }
+
+        .lock-note {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--muted);
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 4px rgba(47, 157, 115, 0.16);
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 9px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(32, 115, 84, 0.45);
+            background: var(--surface-strong);
+        }
+
+        .btn.primary {
+            color: #f5fffb;
+            border-color: transparent;
+            background: linear-gradient(145deg, var(--accent), var(--accent-strong));
+        }
+
+        .btn.primary:hover {
+            border-color: transparent;
+            background: linear-gradient(145deg, #2aa677, #1f6b4e);
+        }
+
+        .btn.danger {
+            color: #fff9f9;
+            border-color: transparent;
+            background: linear-gradient(145deg, #df6666, #c34747);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(240px, 0.72fr) minmax(540px, 2fr);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius-xl);
+            backdrop-filter: blur(8px);
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 16px;
+            padding: 16px;
+            animation: panelFade 0.35s ease;
+        }
+
+        .panel-title {
+            margin: 0 0 8px;
+            font-family: "Urbanist", "Segoe UI", sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .panel-subtitle {
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .stats {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            padding: 11px 12px;
+            background: rgba(255, 255, 255, 0.74);
+        }
+
+        .stat-label {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            display: block;
+            font-family: "Urbanist", "Segoe UI", sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .quick-help {
+            border-top: 1px dashed var(--line);
+            padding-top: 12px;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .content {
+            display: grid;
+            gap: 14px;
+        }
+
+        .manager {
+            padding: 16px;
+            animation: panelFade 0.35s ease;
+        }
+
+        .manager-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .manager-head h2 {
+            margin: 0;
+            font-family: "Urbanist", "Segoe UI", sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .manager-head p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .split {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.1fr) minmax(280px, 1fr);
+            gap: 12px;
+            align-items: start;
+        }
+
+        .form {
+            display: grid;
+            gap: 8px;
+        }
+
+        .field,
+        .textarea,
+        .select {
+            width: 100%;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.82);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 10px 11px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .field:focus,
+        .textarea:focus,
+        .select:focus {
+            border-color: rgba(47, 157, 115, 0.55);
+            box-shadow: 0 0 0 3px rgba(47, 157, 115, 0.15);
+        }
+
+        .textarea {
+            min-height: 92px;
+            resize: vertical;
+            line-height: 1.45;
+        }
+
+        .list-area {
+            display: grid;
+            gap: 8px;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+        }
+
+        .items {
+            max-height: 54vh;
+            overflow: auto;
+            padding-right: 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item {
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.76);
+            padding: 10px;
+        }
+
+        .item.hidden {
+            opacity: 0.64;
+            border-style: dashed;
+        }
+
+        .item-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .item-meta {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .item-controls {
+            margin-top: 7px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 7px;
+        }
+
+        .item-controls .select {
+            padding: 8px 9px;
+            font-size: 12px;
+        }
+
+        .song-picker {
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.78);
+            max-height: 184px;
+            overflow: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .song-picker label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .hint-inline {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .toast-host {
+            position: fixed;
+            right: 14px;
+            bottom: 14px;
+            z-index: 20;
+            display: grid;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--accent);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--text);
+            font-size: 13px;
+            padding: 9px 11px;
+            box-shadow: 0 10px 30px rgba(31, 47, 41, 0.2);
+            transform: translateY(6px);
+            opacity: 0;
+            animation: toastIn 0.18s ease forwards;
+            max-width: min(88vw, 360px);
+        }
+
+        .toast.warn {
+            border-left-color: var(--warn);
+        }
+
+        .toast.danger {
+            border-left-color: var(--danger);
+        }
+
+        @keyframes toastIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes panelFade {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1120px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .split {
+                grid-template-columns: 1fr;
+            }
+
+            .items {
+                max-height: 38vh;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .app {
+                padding: 14px 10px 28px;
+            }
+
+            .top-actions {
+                width: 100%;
+            }
+
+            .auth-inline {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .auth-inline input {
+                width: 100%;
+            }
+
+            .toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .item-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <h1 class="brand-title">WMusic Admin</h1>
+                <p class="brand-sub">Управление треками, секциями и карточками артистов</p>
+            </div>
+
+            <div class="top-actions">
+                <form class="auth-inline" id="authForm">
+                    <input id="authLogin" type="text" placeholder="Логин" autocomplete="username">
+                    <input id="authPassword" type="password" placeholder="Пароль" autocomplete="current-password">
+                    <button class="btn primary" id="authLoginBtn" type="submit">Войти</button>
+                    <button class="btn danger" id="authLogoutBtn" type="button" style="display:none;">Выйти</button>
+                </form>
+                <div class="status-pill" id="syncStatus">
+                    <span class="status-dot"></span>
+                    <span>Режим синхронизации</span>
+                </div>
+                <a class="btn" href="./index.html">Открыть сайт</a>
+                <button class="btn primary" id="downloadScriptBtn" type="button">Скачать Скрипт</button>
+            </div>
+        </header>
+
+        <p class="lock-note" id="lockNote">Для редактирования войдите в админ-панель.</p>
+
+        <main class="dashboard locked" id="dashboard">
+            <aside class="panel sidebar">
+                <h2 class="panel-title">Быстрый Обзор</h2>
+                <p class="panel-subtitle">Проверьте состояние каталога и быстро найдите, что стоит обновить в первую очередь.</p>
+
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-label">Всего треков</span>
+                        <span class="stat-value" id="statTotalSongs">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Скрыто треков</span>
+                        <span class="stat-value" id="statHiddenSongs">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Добавлено в админке</span>
+                        <span class="stat-value" id="statAdminSongs">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Артистов в базе</span>
+                        <span class="stat-value" id="statArtists">0</span>
+                    </div>
+                </div>
+
+                <div class="quick-help">
+                    1. Добавьте трек, затем назначьте раздел.
+                    <br>
+                    2. Для базовых песен используйте "Скрыть", для добавленных через админку доступно "Удалить".
+                    <br>
+                    3. В карточке артиста отмечайте релевантные треки, чтобы не держать устаревшие связи.
+                </div>
+            </aside>
+
+            <section class="content">
+                <section class="panel manager">
+                    <div class="manager-head">
+                        <h2>Музыка и Разделы</h2>
+                        <p>Добавляйте треки и управляйте отображением в ленте</p>
+                    </div>
+
+                    <div class="split">
+                        <form class="form" id="songForm">
+                            <input class="field" id="songTitle" type="text" placeholder="Название трека" required>
+                            <input class="field" id="songArtist" type="text" placeholder="Исполнитель" required>
+                            <input class="field" id="songSrc" type="url" placeholder="Ссылка на аудио (https://...)">
+                            <input class="field" id="songAudio" type="file" accept="audio/*">
+                            <p class="hint-inline">Укажите либо ссылку, либо загрузите файл. Файл будет сохранён в хранилище и доступен публично.</p>
+                            <input class="field" id="songCover" type="url" placeholder="Ссылка на обложку (необязательно)">
+                            <input class="field" id="songCoverFile" type="file" accept="image/*">
+                            <p class="hint-inline">Укажите либо URL, либо загрузите файл. При загрузке файл будет помещён в хранилище.</p>
+                            <textarea class="textarea" id="songLyrics" placeholder="Текст (необязательно)"></textarea>
+                            <select class="select" id="songSection">
+                                <option value="trending">Рекомендации</option>
+                                <option value="user">Ваша музыка</option>
+                                <option value="unlisted">Без раздела</option>
+                            </select>
+                            <button class="btn primary" type="submit">Добавить Трек</button>
+                            <p class="hint-inline">Трек сохранится в Supabase и станет доступен на всех устройствах.</p>
+                        </form>
+
+                        <div class="list-area">
+                            <div class="toolbar">
+                                <input class="field" id="songSearch" type="text" placeholder="Поиск по трекам">
+                                <button class="btn" id="reloadSongsBtn" type="button">Обновить</button>
+                            </div>
+                            <div class="items" id="songsList"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel manager">
+                    <div class="manager-head">
+                        <h2>Пользовательская музыка</h2>
+                        <p>Список треков, загруженных пользователями. Управляйте видимостью и удаляйте при необходимости.</p>
+                    </div>
+
+                    <div class="split">
+                        <div class="form" style="min-width:220px;">
+                            <p class="hint-inline">Поиск и быстрые действия для пользовательских треков.</p>
+                            <div class="toolbar">
+                                <input class="field" id="userUploadSearch" type="text" placeholder="Поиск по пользовательским трекам">
+                                <button class="btn" id="reloadUserUploadsBtn" type="button">Обновить</button>
+                            </div>
+                        </div>
+
+                        <div class="list-area">
+                            <div class="items" id="userUploadsList"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel manager">
+                    <div class="manager-head">
+                        <h2>Артисты</h2>
+                        <p>Создавайте карточки и связывайте их с треками</p>
+                    </div>
+
+                    <div class="split">
+                        <form class="form" id="artistForm">
+                            <input id="artistEditId" type="hidden">
+                            <input class="field" id="artistName" type="text" placeholder="Имя артиста" required>
+                            <input class="field" id="artistPhoto" type="url" placeholder="Ссылка на фото" required>
+                            <input class="field" id="artistAlbums" type="text" placeholder="Альбомы через запятую">
+                            <div class="song-picker" id="artistSongPicker"></div>
+                            <button class="btn primary" id="artistSubmitBtn" type="submit">Сохранить Артиста</button>
+                        </form>
+
+                        <div class="list-area">
+                            <div class="toolbar">
+                                <input class="field" id="artistSearch" type="text" placeholder="Поиск по артистам">
+                                <button class="btn" id="resetArtistFormBtn" type="button">Сбросить Форму</button>
+                            </div>
+                            <div class="items" id="artistsList"></div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <div class="toast-host" id="toastHost"></div>
+
+    <script>
+        (function () {
+            const DEFAULT_CUSTOM_COVER = 'https://i.postimg.cc/wvvyjCqY/photo-5282871454565341436-c.jpg';
+            const ADMIN_ADDED_SONGS_KEY = 'wmusic-admin-added-songs';
+            const ARTISTS_STATE_KEY = 'wmusic-artists-state';
+            const SONG_SECTION_OVERRIDES_KEY = 'wmusic-song-section-overrides';
+            const HIDDEN_SONG_IDS_KEY = 'wmusic-hidden-song-ids';
+            const ADMIN_SONG_CATALOG_KEY = 'wmusic-admin-song-catalog';
+
+            const songForm = document.getElementById('songForm');
+            const songTitle = document.getElementById('songTitle');
+            const songArtist = document.getElementById('songArtist');
+            const songSrc = document.getElementById('songSrc');
+            const songAudio = document.getElementById('songAudio');
+            const songCover = document.getElementById('songCover');
+            const songCoverFile = document.getElementById('songCoverFile');
+            const songLyrics = document.getElementById('songLyrics');
+            const songSection = document.getElementById('songSection');
+            const songSearch = document.getElementById('songSearch');
+            const reloadSongsBtn = document.getElementById('reloadSongsBtn');
+            const songsList = document.getElementById('songsList');
+
+            const artistForm = document.getElementById('artistForm');
+            const artistEditId = document.getElementById('artistEditId');
+            const artistName = document.getElementById('artistName');
+            const artistPhoto = document.getElementById('artistPhoto');
+            const artistAlbums = document.getElementById('artistAlbums');
+            const artistSongPicker = document.getElementById('artistSongPicker');
+            const artistSubmitBtn = document.getElementById('artistSubmitBtn');
+            const artistSearch = document.getElementById('artistSearch');
+            const resetArtistFormBtn = document.getElementById('resetArtistFormBtn');
+            const artistsList = document.getElementById('artistsList');
+            const downloadScriptBtn = document.getElementById('downloadScriptBtn');
+            const userUploadSearch = document.getElementById('userUploadSearch');
+            const reloadUserUploadsBtn = document.getElementById('reloadUserUploadsBtn');
+            const userUploadsList = document.getElementById('userUploadsList');
+
+            const statTotalSongs = document.getElementById('statTotalSongs');
+            const statHiddenSongs = document.getElementById('statHiddenSongs');
+            const statAdminSongs = document.getElementById('statAdminSongs');
+            const statArtists = document.getElementById('statArtists');
+            const syncStatus = document.getElementById('syncStatus');
+            const toastHost = document.getElementById('toastHost');
+            const dashboard = document.getElementById('dashboard');
+            const authForm = document.getElementById('authForm');
+            const authLogin = document.getElementById('authLogin');
+            const authPassword = document.getElementById('authPassword');
+            const authLogoutBtn = document.getElementById('authLogoutBtn');
+            const authLoginBtn = document.getElementById('authLoginBtn');
+            const lockNote = document.getElementById('lockNote');
+
+            const ADMIN_LOGIN = 'qqwwee';
+            const ADMIN_PASSWORD = 'qwe';
+            const AUTH_SESSION_KEY = 'wmusic-admin-auth-ok';
+            let isAuthorized = false;
+            let appBootstrapped = false;
+
+            const SUPABASE_PROJECT_REF = 'dcohuxhtipbynxbbzcqf';
+            const SUPABASE_URL = 'https://' + SUPABASE_PROJECT_REF + '.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_zHnbBi9hdPh1pQf0KhaZxQ_dC9tz_uB';
+            const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            const supabaseTablesAvailable = {
+                tracks: true,
+                artists: true,
+                artist_tracks: true
+            };
+
+            const SUPABASE_STORAGE_BUCKET = 'wmusic-media';
+
+            function sanitizeFileName(name) {
+                return String(name || '')
+                    .replace(/[^a-z0-9._-]+/gi, '_')
+                    .replace(/_+/g, '_')
+                    .toLowerCase();
+            }
+
+            async function uploadFileToSupabaseStorage(path, file) {
+                if (!path) throw new Error('Empty path');
+                const targetPath = path.split('/').map(p => encodeURIComponent(p)).join('/');
+                const resp = await fetch(SUPABASE_URL + '/storage/v1/object/' + SUPABASE_STORAGE_BUCKET + '/' + targetPath, {
+                    method: 'PUT',
+                    headers: {
+                        apikey: SUPABASE_ANON_KEY,
+                        Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+                    },
+                    body: file
+                });
+                if (!resp.ok) {
+                    throw new Error('Upload failed ' + resp.status);
+                }
+                return SUPABASE_URL + '/storage/v1/object/public/' + SUPABASE_STORAGE_BUCKET + '/' + targetPath;
+            }
+
+            function isUuid(value) {
+                return UUID_RE.test(String(value || ''));
+            }
+
+            function createUuid() {
+                if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                    return window.crypto.randomUUID();
+                }
+
+                const bytes = new Uint8Array(16);
+                if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+                    window.crypto.getRandomValues(bytes);
+                } else {
+                    for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+                }
+
+                bytes[6] = (bytes[6] & 0x0f) | 0x40;
+                bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+                const hex = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+                return [
+                    hex.slice(0, 8),
+                    hex.slice(8, 12),
+                    hex.slice(12, 16),
+                    hex.slice(16, 20),
+                    hex.slice(20)
+                ].join('-');
+            }
+
+            async function supabaseRequest(path, options) {
+                const merged = Object.assign({}, options || {});
+                const customHeaders = merged.headers || {};
+                merged.headers = Object.assign(
+                    {
+                        apikey: SUPABASE_ANON_KEY,
+                        Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    customHeaders
+                );
+
+                const response = await fetch(SUPABASE_URL + path, merged);
+                if (!response.ok) {
+                    const text = await response.text();
+                    let parsed = null;
+                    if (text) {
+                        try {
+                            parsed = JSON.parse(text);
+                        } catch {
+                            parsed = null;
+                        }
+                    }
+
+                    const code = parsed && parsed.code ? String(parsed.code) : '';
+                    const message = parsed && parsed.message ? String(parsed.message) : String(text || '').trim();
+                    const parts = ['HTTP ' + response.status];
+                    if (code) parts.push(code);
+                    if (message) parts.push(message);
+                    throw new Error(parts.join(' | '));
+                }
+
+                if (response.status === 204) return null;
+                return await response.json();
+            }
+
+            function getErrorMessageText(error) {
+                return String((error && error.message) || '').toLowerCase();
+            }
+
+            function isMissingTableError(error, tableName) {
+                const text = getErrorMessageText(error);
+                if (!text.includes('pgrst205')) return false;
+                if (!tableName) return true;
+                return text.includes("public." + String(tableName).toLowerCase());
+            }
+
+            async function supabaseRequestWithTableFallback(path, options, tableName, fallbackValue) {
+                try {
+                    return await supabaseRequest(path, options);
+                } catch (error) {
+                    if (isMissingTableError(error, tableName)) {
+                        supabaseTablesAvailable[tableName] = false;
+                        return fallbackValue;
+                    }
+                    throw error;
+                }
+            }
+
+            function loadJson(key, fallback) {
+                try {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return fallback;
+                    const parsed = JSON.parse(raw);
+                    return parsed ?? fallback;
+                } catch {
+                    return fallback;
+                }
+            }
+
+            function setStatus(text) {
+                syncStatus.innerHTML = '<span class="status-dot"></span><span>' + text + '</span>';
+            }
+
+            function saveJson(key, value) {
+                localStorage.setItem(key, JSON.stringify(value));
+                const stamp = new Date();
+                const hh = String(stamp.getHours()).padStart(2, '0');
+                const mm = String(stamp.getMinutes()).padStart(2, '0');
+                setStatus('Сохранено в ' + hh + ':' + mm);
+            }
+
+            function showToast(message, type) {
+                const toast = document.createElement('div');
+                toast.className = 'toast' + (type ? ' ' + type : '');
+                toast.textContent = message;
+                toastHost.appendChild(toast);
+                window.setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(6px)';
+                    window.setTimeout(() => toast.remove(), 160);
+                }, 2200);
+            }
+
+            function normalizeName(name) {
+                return String(name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+            }
+
+            function getSyncErrorMessage(error) {
+                const raw = String((error && error.message) || 'Неизвестная ошибка').trim();
+                return raw.length > 95 ? (raw.slice(0, 92) + '...') : raw;
+            }
+
+            function applyAuthUiState() {
+                dashboard.classList.toggle('locked', !isAuthorized);
+                authLogoutBtn.style.display = isAuthorized ? 'inline-block' : 'none';
+                authLoginBtn.style.display = isAuthorized ? 'none' : 'inline-block';
+                authLogin.disabled = isAuthorized;
+                authPassword.disabled = isAuthorized;
+                lockNote.style.display = isAuthorized ? 'none' : 'block';
+                downloadScriptBtn.disabled = !isAuthorized;
+                if (!isAuthorized) {
+                    setStatus('Требуется вход в админку');
+                }
+            }
+
+            async function bootstrapAppAfterLogin() {
+                if (appBootstrapped) return;
+                appBootstrapped = true;
+
+                setStatus('Подключение к Supabase...');
+                updateStats();
+                renderSongs();
+                renderUserUploads();
+                renderSongPicker();
+                renderArtists();
+
+                await syncFromSupabase();
+                updateStats();
+                renderSongs();
+                renderUserUploads();
+                renderSongPicker();
+                renderArtists();
+            }
+
+            function getCatalog() {
+                const catalog = loadJson(ADMIN_SONG_CATALOG_KEY, []);
+                return Array.isArray(catalog) ? catalog : [];
+            }
+
+            function getAdminAddedSongs() {
+                const items = loadJson(ADMIN_ADDED_SONGS_KEY, []);
+                return Array.isArray(items) ? items : [];
+            }
+
+            function getArtistsState() {
+                const items = loadJson(ARTISTS_STATE_KEY, []);
+                return Array.isArray(items) ? items : [];
+            }
+
+            function getSectionOverrides() {
+                const map = loadJson(SONG_SECTION_OVERRIDES_KEY, {});
+                return map && typeof map === 'object' ? map : {};
+            }
+
+            function getHiddenIds() {
+                const ids = loadJson(HIDDEN_SONG_IDS_KEY, []);
+                return Array.isArray(ids) ? ids.map(String) : [];
+            }
+
+            async function syncFromSupabase() {
+                try {
+                    setStatus('Синхронизация Supabase...');
+
+                    const remoteTracks = await supabaseRequestWithTableFallback(
+                        '/rest/v1/tracks?select=id,title,artist_name,cover,src,lyrics,plays,section,is_hidden&order=created_at.asc',
+                        { method: 'GET' },
+                        'tracks',
+                        []
+                    );
+
+                    if (!supabaseTablesAvailable.tracks) {
+                        setStatus('Локальный режим (таблица tracks не найдена)');
+                        showToast('Таблица tracks отсутствует в Supabase. Работаем локально.', 'warn');
+                        return;
+                    }
+
+                    const remoteArtists = await supabaseRequestWithTableFallback(
+                        '/rest/v1/artists?select=id,name,photo&order=created_at.asc',
+                        { method: 'GET' },
+                        'artists',
+                        []
+                    );
+
+                    const remoteLinks = await supabaseRequestWithTableFallback(
+                        '/rest/v1/artist_tracks?select=artist_id,track_id',
+                        { method: 'GET' },
+                        'artist_tracks',
+                        []
+                    );
+
+                    const nextCatalogMap = new Map(getCatalog().map((song) => [song.id, song]));
+                    const nextAdminSongs = [];
+                    const nextOverrides = Object.assign({}, getSectionOverrides());
+                    const nextHiddenIds = new Set(getHiddenIds());
+
+                    (Array.isArray(remoteTracks) ? remoteTracks : []).forEach((row) => {
+                        if (!row || !row.id || !row.title || !row.artist_name || !row.src) return;
+
+                        const id = String(row.id);
+                        nextCatalogMap.set(id, {
+                            id,
+                            title: String(row.title),
+                            artist: String(row.artist_name),
+                            isCustom: false,
+                            isAdminAdded: true
+                        });
+
+                        nextAdminSongs.push({
+                            id,
+                            title: String(row.title),
+                            artist: String(row.artist_name),
+                            cover: String(row.cover || DEFAULT_CUSTOM_COVER),
+                            plays: Number(row.plays || 0),
+                            src: String(row.src),
+                            lyrics: String(row.lyrics || '')
+                        });
+
+                        nextOverrides[id] = row.section === 'user' ? 'user' : row.section === 'unlisted' ? 'unlisted' : 'trending';
+                        if (row.is_hidden) nextHiddenIds.add(id);
+                        if (!row.is_hidden) nextHiddenIds.delete(id);
+                    });
+
+                    const tracksById = new Map(nextAdminSongs.map((track) => [track.id, track]));
+                    const linksByArtist = new Map();
+                    (Array.isArray(remoteLinks) ? remoteLinks : []).forEach((link) => {
+                        const artistId = String(link.artist_id || '');
+                        const trackId = String(link.track_id || '');
+                        if (!artistId || !trackId) return;
+                        if (!linksByArtist.has(artistId)) linksByArtist.set(artistId, []);
+                        linksByArtist.get(artistId).push(trackId);
+                    });
+
+                    const nextArtists = (Array.isArray(remoteArtists) ? remoteArtists : []).map((artist) => {
+                        const artistId = String(artist.id || createUuid());
+                        const linkedTrackIds = linksByArtist.get(artistId) || [];
+                        const popularSongs = linkedTrackIds
+                            .map((trackId) => tracksById.get(trackId))
+                            .filter(Boolean)
+                            .map((track) => track.title);
+
+                        return {
+                            id: artistId,
+                            name: String(artist.name || 'Artist'),
+                            photo: String(artist.photo || DEFAULT_CUSTOM_COVER),
+                            albums: [],
+                            popularSongs
+                        };
+                    });
+
+                    saveJson(ADMIN_ADDED_SONGS_KEY, nextAdminSongs);
+                    saveJson(ADMIN_SONG_CATALOG_KEY, [...nextCatalogMap.values()]);
+                    saveJson(SONG_SECTION_OVERRIDES_KEY, nextOverrides);
+                    saveJson(HIDDEN_SONG_IDS_KEY, [...nextHiddenIds]);
+                    if (nextArtists.length) {
+                        saveJson(ARTISTS_STATE_KEY, nextArtists);
+                    }
+
+                    if (!supabaseTablesAvailable.artists || !supabaseTablesAvailable.artist_tracks) {
+                        setStatus('Supabase подключен частично (без artists)');
+                    } else {
+                        setStatus('Supabase подключен');
+                    }
+                } catch (error) {
+                    const reason = getSyncErrorMessage(error);
+                    setStatus('Локальный режим (' + reason + ')');
+                    showToast('Ошибка Supabase: ' + reason, 'warn');
+                }
+            }
+
+            async function upsertTrackToSupabase(song, section, isHidden) {
+                if (!supabaseTablesAvailable.tracks) return;
+                if (!song || !isUuid(song.id)) return;
+                await supabaseRequest('/rest/v1/tracks', {
+                    method: 'POST',
+                    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+                    body: JSON.stringify([
+                        {
+                            id: song.id,
+                            title: song.title,
+                            artist_name: song.artist,
+                            cover: song.cover || DEFAULT_CUSTOM_COVER,
+                            src: song.src,
+                            lyrics: song.lyrics || '',
+                            plays: Number(song.plays || 0),
+                            section: section === 'user' ? 'user' : section === 'unlisted' ? 'unlisted' : 'trending',
+                            is_hidden: Boolean(isHidden)
+                        }
+                    ])
+                });
+            }
+
+            async function patchTrackInSupabase(trackId, changes) {
+                if (!supabaseTablesAvailable.tracks) return;
+                if (!isUuid(trackId)) return;
+                await supabaseRequest('/rest/v1/tracks?id=eq.' + encodeURIComponent(trackId), {
+                    method: 'PATCH',
+                    headers: { Prefer: 'return=representation' },
+                    body: JSON.stringify(changes || {})
+                });
+            }
+
+            async function deleteTrackFromSupabase(trackId) {
+                if (!supabaseTablesAvailable.tracks) return;
+                if (!isUuid(trackId)) return;
+                await supabaseRequest('/rest/v1/tracks?id=eq.' + encodeURIComponent(trackId), {
+                    method: 'DELETE'
+                });
+            }
+
+            async function upsertArtistToSupabase(artist) {
+                if (!supabaseTablesAvailable.artists) return;
+                if (!artist || !artist.id || !isUuid(artist.id)) return;
+                await supabaseRequest('/rest/v1/artists', {
+                    method: 'POST',
+                    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+                    body: JSON.stringify([
+                        {
+                            id: artist.id,
+                            name: artist.name,
+                            photo: artist.photo
+                        }
+                    ])
+                });
+            }
+
+            async function replaceArtistTracksInSupabase(artistId, trackIds) {
+                if (!supabaseTablesAvailable.artist_tracks) return;
+                if (!isUuid(artistId)) return;
+
+                await supabaseRequest('/rest/v1/artist_tracks?artist_id=eq.' + encodeURIComponent(artistId), {
+                    method: 'DELETE'
+                });
+
+                const rows = (Array.isArray(trackIds) ? trackIds : [])
+                    .filter((trackId) => isUuid(trackId))
+                    .map((trackId) => ({ artist_id: artistId, track_id: trackId }));
+
+                if (!rows.length) return;
+
+                await supabaseRequest('/rest/v1/artist_tracks', {
+                    method: 'POST',
+                    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+                    body: JSON.stringify(rows)
+                });
+            }
+
+            async function deleteArtistFromSupabase(artistId) {
+                if (!supabaseTablesAvailable.artists) return;
+                if (!isUuid(artistId)) return;
+                await supabaseRequest('/rest/v1/artists?id=eq.' + encodeURIComponent(artistId), {
+                    method: 'DELETE'
+                });
+            }
+
+            function ensureCatalog() {
+                const catalog = getCatalog();
+                const adminSongs = getAdminAddedSongs();
+                let changed = false;
+
+                for (const song of adminSongs) {
+                    if (!song || !song.id) continue;
+                    if (catalog.some((x) => x.id === song.id)) continue;
+                    catalog.push({
+                        id: String(song.id),
+                        title: String(song.title || ''),
+                        artist: String(song.artist || ''),
+                        isCustom: false,
+                        isAdminAdded: true
+                    });
+                    changed = true;
+                }
+
+                if (changed) {
+                    saveJson(ADMIN_SONG_CATALOG_KEY, catalog);
+                }
+
+                return catalog;
+            }
+
+            function getTrackByIdFromCatalog(trackId) {
+                return ensureCatalog().find((song) => song.id === trackId) || null;
+            }
+
+            function updateStats() {
+                const catalog = ensureCatalog();
+                const hiddenSet = new Set(getHiddenIds());
+                const hiddenCount = catalog.filter((song) => hiddenSet.has(song.id)).length;
+                statTotalSongs.textContent = String(catalog.length);
+                statHiddenSongs.textContent = String(hiddenCount);
+                statAdminSongs.textContent = String(getAdminAddedSongs().length);
+                statArtists.textContent = String(getArtistsState().length);
+            }
+
+            function renderSongPicker(selectedTitles) {
+                const selected = new Set((selectedTitles || []).map(normalizeName));
+                const catalog = ensureCatalog();
+
+                if (!catalog.length) {
+                    artistSongPicker.innerHTML = '<div class="item-meta">Список песен пока пуст. Откройте сайт один раз и вернитесь в админку.</div>';
+                    return;
+                }
+
+                artistSongPicker.innerHTML = catalog
+                    .slice()
+                    .sort((a, b) => a.title.localeCompare(b.title, 'ru'))
+                    .map((song) => {
+                        const checked = selected.has(normalizeName(song.title)) ? 'checked' : '';
+                        return '<label><input type="checkbox" value="' + song.id + '" ' + checked + '> <span>' + song.title + ' - ' + song.artist + '</span></label>';
+                    })
+                    .join('');
+            }
+
+            function getSelectedSongTitlesFromPicker() {
+                return [...artistSongPicker.querySelectorAll('input[type="checkbox"]:checked')]
+                    .map((input) => getTrackByIdFromCatalog(input.value))
+                    .filter(Boolean)
+                    .map((song) => song.title);
+            }
+
+            function getSelectedSongIdsFromPicker() {
+                return [...artistSongPicker.querySelectorAll('input[type="checkbox"]:checked')]
+                    .map((input) => String(input.value || ''))
+                    .filter(Boolean);
+            }
+
+            function renderSongs() {
+                const query = normalizeName(songSearch.value);
+                const catalog = ensureCatalog().slice().sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+                const sectionOverrides = getSectionOverrides();
+                const hiddenIds = new Set(getHiddenIds());
+
+                const filtered = catalog.filter((song) => {
+                    return normalizeName(song.title).includes(query) || normalizeName(song.artist).includes(query);
+                });
+
+                if (!filtered.length) {
+                    songsList.innerHTML = '<div class="item"><div class="item-meta">По вашему запросу треки не найдены.</div></div>';
+                    updateStats();
+                    return;
+                }
+
+                songsList.innerHTML = filtered.map((song) => {
+                    const hidden = hiddenIds.has(song.id);
+                    const section = sectionOverrides[song.id] || (song.isCustom ? 'user' : 'trending');
+                    const actionLabel = hidden ? 'Вернуть' : (song.isAdminAdded ? 'Удалить' : 'Скрыть');
+                    const actionType = hidden ? 'restore' : (song.isAdminAdded ? 'delete' : 'hide');
+                    let typeLabel;
+                    if (song.isCustom) {
+                        typeLabel = 'ваш файл';
+                    } else if (section === 'unlisted') {
+                        typeLabel = 'без раздела';
+                    } else if (song.isAdminAdded) {
+                        typeLabel = 'добавлен в админке';
+                    } else {
+                        typeLabel = 'базовый';
+                    }
+
+                    return '<div class="item ' + (hidden ? 'hidden' : '') + '">' +
+                        '<div class="item-head"><div class="item-title">' + song.title + '</div><div class="item-meta">' + song.artist + '</div></div>' +
+                        '<div class="item-meta">Тип: ' + typeLabel + '</div>' +
+                        '<div class="item-controls">' +
+                            '<select class="select" data-song-section="' + song.id + '" ' + (hidden ? 'disabled' : '') + '>' +
+                                '<option value="trending" ' + (section === 'trending' ? 'selected' : '') + '>Рекомендации</option>' +
+                                '<option value="user" ' + (section === 'user' ? 'selected' : '') + '>Ваша музыка</option>' +
+                                '<option value="unlisted" ' + (section === 'unlisted' ? 'selected' : '') + '>Без раздела</option>' +
+                            '</select>' +
+                            '<button class="btn ' + (actionType === 'delete' ? 'danger' : '') + '" type="button" data-song-action="' + actionType + '" data-song-id="' + song.id + '">' + actionLabel + '</button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                songsList.querySelectorAll('[data-song-section]').forEach((select) => {
+                    select.addEventListener('change', async () => {
+                        const songId = select.dataset.songSection;
+                        let section;
+                        if (select.value === 'user') section = 'user';
+                        else if (select.value === 'unlisted') section = 'unlisted';
+                        else section = 'trending';
+
+                        nextOverrides[songId] = section;
+                        nextHidden.delete(songId);
+                        saveJson(SONG_SECTION_OVERRIDES_KEY, nextOverrides);
+                        saveJson(HIDDEN_SONG_IDS_KEY, [...nextHidden]);
+
+                        try {
+                            await patchTrackInSupabase(songId, { section, is_hidden: false });
+                        } catch (error) {
+                            showToast('Не удалось синхронизировать раздел в Supabase', 'warn');
+                        }
+
+                        showToast('Раздел для трека обновлен');
+                        renderSongs();
+                    });
+                });
+
+                songsList.querySelectorAll('[data-song-action]').forEach((button) => {
+                    button.addEventListener('click', async () => {
+                        const songId = button.dataset.songId;
+                        const action = button.dataset.songAction;
+                        const nextHidden = new Set(getHiddenIds());
+                        const nextOverrides = getSectionOverrides();
+
+                        if (action === 'restore') {
+                            nextHidden.delete(songId);
+                            saveJson(HIDDEN_SONG_IDS_KEY, [...nextHidden]);
+                            try {
+                                await patchTrackInSupabase(songId, { is_hidden: false });
+                            } catch (error) {
+                                showToast('Не удалось синхронизировать восстановление', 'warn');
+                            }
+                            showToast('Трек снова отображается');
+                            renderSongs();
+                            return;
+                        }
+
+                        if (action === 'hide') {
+                            nextHidden.add(songId);
+                            saveJson(HIDDEN_SONG_IDS_KEY, [...nextHidden]);
+                            try {
+                                await patchTrackInSupabase(songId, { is_hidden: true });
+                            } catch (error) {
+                                showToast('Не удалось синхронизировать скрытие', 'warn');
+                            }
+                            showToast('Трек скрыт из выдачи', 'warn');
+                            renderSongs();
+                            return;
+                        }
+
+                        if (action === 'delete') {
+                            const adminSongs = getAdminAddedSongs().filter((song) => song.id !== songId);
+                            const catalog = ensureCatalog().filter((song) => song.id !== songId);
+
+                            delete nextOverrides[songId];
+                            nextHidden.delete(songId);
+
+                            saveJson(ADMIN_ADDED_SONGS_KEY, adminSongs);
+                            saveJson(ADMIN_SONG_CATALOG_KEY, catalog);
+                            saveJson(SONG_SECTION_OVERRIDES_KEY, nextOverrides);
+                            saveJson(HIDDEN_SONG_IDS_KEY, [...nextHidden]);
+
+                            try {
+                                await deleteTrackFromSupabase(songId);
+                            } catch (error) {
+                                showToast('Не удалось удалить трек из Supabase', 'warn');
+                            }
+
+                            showToast('Трек удален из админ-каталога', 'danger');
+                            renderSongs();
+                            renderSongPicker();
+                            renderArtists();
+                        }
+                    });
+                });
+
+                updateStats();
+            }
+
+            // Рендер пользовательских загрузок (отдельный менеджер)
+            function renderUserUploads() {
+                const query = normalizeName(document.getElementById('userUploadSearch')?.value || '');
+                const catalog = ensureCatalog().slice().sort((a, b) => a.title.localeCompare(b.title, 'ru'));
+                const hiddenIds = new Set(getHiddenIds());
+                const sectionOverrides = getSectionOverrides();
+
+                const filtered = catalog.filter((song) => {
+                    const sec = sectionOverrides[song.id];
+                    const isUnlisted = sec === 'unlisted';
+                    return (song.isCustom || song.isAdminAdded === false || isUnlisted) &&
+                        (normalizeName(song.title).includes(query) || normalizeName(song.artist).includes(query));
+                });
+
+                const host = document.getElementById('userUploadsList');
+                if (!host) return;
+
+                if (!filtered.length) {
+                    host.innerHTML = '<div class="item"><div class="item-meta">Пользовательские треки не найдены.</div></div>';
+                    return;
+                }
+
+                host.innerHTML = filtered.map((song) => {
+                    const hidden = hiddenIds.has(song.id);
+                    const actionLabel = hidden ? 'Вернуть' : 'Скрыть';
+                    const actionType = hidden ? 'restore' : 'hide';
+                    return '<div class="item ' + (hidden ? 'hidden' : '') + '">' +
+                        '<div class="item-head"><div class="item-title">' + song.title + '</div><div class="item-meta">' + song.artist + '</div></div>' +
+                        '<div class="item-meta">ID: ' + song.id + '</div>' +
+                        '<div class="item-controls">' +
+                            '<button class="btn" type="button" data-user-action="play" data-user-id="' + song.id + '">Воспроизвести</button>' +
+                            '<button class="btn" type="button" data-user-action="download" data-user-id="' + song.id + '">Скачать</button>' +
+                            '<button class="btn" type="button" data-user-action="' + actionType + '" data-user-id="' + song.id + '">' + actionLabel + '</button>' +
+                            '<button class="btn danger" type="button" data-user-action="delete" data-user-id="' + song.id + '">Удалить</button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                host.querySelectorAll('[data-user-action]').forEach((btn) => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.userId;
+                        const action = btn.dataset.userAction;
+                        const nextHidden = new Set(getHiddenIds());
+
+                        if (action === 'play') {
+                            showToast('Откройте главную страницу и воспроизведите трек вручную.');
+                            return;
+                        }
+
+                        if (action === 'download') {
+                            showToast('Скачивание доступно через ссылку в записи трека.');
+                            return;
+                        }
+
+                        if (action === 'restore') {
+                            nextHidden.delete(id);
+                            saveJson(HIDDEN_SONG_IDS_KEY, [...nextHidden]);
+                            try { await patchTrackInSupabase(id, { is_hidden: false }); } catch (e) { showToast('Ошибка синхр.','warn'); }
+                            showToast('Трек снова отображается');
+                            renderUserUploads();
+                            renderSongs();
+                            return;
+                        }
+
+                        if (action === 'hide') {
+                            nextHidden.add(id);
+                            saveJson(HIDDEN_SONG_IDS_KEY, [...nextHidden]);
+                            try { await patchTrackInSupabase(id, { is_hidden: true }); } catch (e) { showToast('Ошибка синхр.','warn'); }
+                            showToast('Трек скрыт');
+                            renderUserUploads();
+                            renderSongs();
+                            return;
+                        }
+
+                        if (action === 'delete') {
+                            if (!window.confirm('Удалить трек ' + id + '?')) return;
+                            const adminSongs = getAdminAddedSongs().filter((s) => s.id !== id);
+                            const catalog = ensureCatalog().filter((s) => s.id !== id);
+                            saveJson(ADMIN_ADDED_SONGS_KEY, adminSongs);
+                            saveJson(ADMIN_SONG_CATALOG_KEY, catalog);
+                            const nextOverrides = getSectionOverrides();
+                            delete nextOverrides[id];
+                            const nextHiddenArr = getHiddenIds().filter(x => x !== id);
+                            saveJson(SONG_SECTION_OVERRIDES_KEY, nextOverrides);
+                            saveJson(HIDDEN_SONG_IDS_KEY, nextHiddenArr);
+                            try { await deleteTrackFromSupabase(id); } catch (e) { showToast('Не удалось удалить из Supabase','warn'); }
+                            showToast('Трек удалён', 'danger');
+                            renderUserUploads();
+                            renderSongs();
+                            renderSongPicker();
+                            renderArtists();
+                            return;
+                        }
+                    });
+                });
+            }
+
+            function renderArtists() {
+                const query = normalizeName(artistSearch.value);
+                const artists = getArtistsState().slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ru'));
+                const filtered = artists.filter((artist) => normalizeName(artist.name).includes(query));
+
+                if (!filtered.length) {
+                    artistsList.innerHTML = '<div class="item"><div class="item-meta">Артисты пока не добавлены.</div></div>';
+                    updateStats();
+                    return;
+                }
+
+                artistsList.innerHTML = filtered.map((artist) => {
+                    const songsCount = Array.isArray(artist.popularSongs) ? artist.popularSongs.length : 0;
+                    return '<div class="item">' +
+                        '<div class="item-head"><div class="item-title">' + artist.name + '</div><div class="item-meta">' + songsCount + ' песен</div></div>' +
+                        '<div class="item-controls">' +
+                            '<button class="btn" type="button" data-artist-action="edit" data-artist-id="' + artist.id + '">Редактировать</button>' +
+                            '<button class="btn danger" type="button" data-artist-action="delete" data-artist-id="' + artist.id + '">Удалить</button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                artistsList.querySelectorAll('[data-artist-action]').forEach((button) => {
+                    button.addEventListener('click', async () => {
+                        const artistId = button.dataset.artistId;
+                        const action = button.dataset.artistAction;
+                        const artists = getArtistsState();
+                        const target = artists.find((artist) => artist.id === artistId);
+                        if (!target) return;
+
+                        if (action === 'edit') {
+                            artistEditId.value = target.id;
+                            artistName.value = target.name || '';
+                            artistPhoto.value = target.photo || '';
+                            artistAlbums.value = (target.albums || []).map((album) => album.title).join(', ');
+                            renderSongPicker(target.popularSongs || []);
+                            artistSubmitBtn.textContent = 'Обновить Артиста';
+                            showToast('Карточка артиста загружена в форму');
+                            return;
+                        }
+
+                        if (!window.confirm('Удалить профиль артиста "' + target.name + '"?')) return;
+                        const nextArtists = artists.filter((artist) => artist.id !== artistId);
+                        saveJson(ARTISTS_STATE_KEY, nextArtists);
+                        try {
+                            await deleteArtistFromSupabase(artistId);
+                        } catch (error) {
+                            showToast('Не удалось удалить артиста из Supabase', 'warn');
+                        }
+                        showToast('Артист удален', 'danger');
+                        renderArtists();
+                        resetArtistForm();
+                    });
+                });
+
+                updateStats();
+            }
+
+            function resetArtistForm() {
+                artistForm.reset();
+                artistEditId.value = '';
+                artistSubmitBtn.textContent = 'Сохранить Артиста';
+                renderSongPicker();
+            }
+
+            songForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!isAuthorized) {
+                    showToast('Сначала войдите в админ-панель', 'warn');
+                    return;
+                }
+
+                const title = songTitle.value.trim();
+                const artist = songArtist.value.trim();
+                let src = songSrc.value.trim();
+                const audioFile = songAudio.files && songAudio.files[0];
+                let cover = songCover.value.trim() || DEFAULT_CUSTOM_COVER;
+                const coverFile = songCoverFile.files && songCoverFile.files[0];
+                const lyrics = songLyrics.value.trim();
+                const section = songSection.value === 'user' ? 'user' : 'trending';
+
+                if (!title || !artist || (!src && !audioFile)) {
+                    showToast('Заполните обязательные поля (название, исполнитель и ссылка или файл)', 'warn');
+                    return;
+                }
+
+                // cover upload takes precedence over URL
+                if (coverFile) {
+                    try {
+                        const idForCover = createUuid();
+                        const coverPath = 'covers/' + idForCover + '-' + sanitizeFileName(coverFile.name || 'cover.jpg');
+                        cover = await uploadFileToSupabaseStorage(coverPath, coverFile);
+                    } catch (err) {
+                        showToast('Ошибка загрузки обложки: ' + err.message, 'warn');
+                        return;
+                    }
+                }
+
+                if (audioFile) {
+                    // upload audio to Supabase storage
+                    try {
+                        const idForPath = createUuid();
+                        const audioPath = 'audio/' + idForPath + '-' + sanitizeFileName(audioFile.name || 'track.mp3');
+                        src = await uploadFileToSupabaseStorage(audioPath, audioFile);
+                    } catch (uploadErr) {
+                        showToast('Не удалось загрузить файл: ' + uploadErr.message, 'warn');
+                        return;
+                    }
+                }
+
+                if (src) {
+                    try {
+                        new URL(src);
+                    } catch {
+                        showToast('Проверьте корректность URL', 'warn');
+                        return;
+                    }
+                }
+
+                const newSong = {
+                    id: createUuid(),
+                    title,
+                    artist,
+                    cover,
+                    plays: 0,
+                    src,
+                    lyrics
+                };
+
+                const adminSongs = getAdminAddedSongs();
+                adminSongs.push(newSong);
+                saveJson(ADMIN_ADDED_SONGS_KEY, adminSongs);
+
+                const catalog = ensureCatalog();
+                catalog.push({
+                    id: newSong.id,
+                    title: newSong.title,
+                    artist: newSong.artist,
+                    isCustom: false,
+                    isAdminAdded: true
+                });
+                saveJson(ADMIN_SONG_CATALOG_KEY, catalog);
+
+                const sectionOverrides = getSectionOverrides();
+                sectionOverrides[newSong.id] = section;
+                saveJson(SONG_SECTION_OVERRIDES_KEY, sectionOverrides);
+
+                try {
+                    await upsertTrackToSupabase(newSong, section, false);
+                } catch (error) {
+                    showToast('Трек добавлен локально, но не записан в Supabase', 'warn');
+                }
+
+                songForm.reset();
+                showToast('Трек добавлен');
+                renderSongs();
+                renderSongPicker();
+            });
+
+            artistForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!isAuthorized) {
+                    showToast('Сначала войдите в админ-панель', 'warn');
+                    return;
+                }
+
+                const editId = artistEditId.value.trim();
+                const name = artistName.value.trim();
+                const photo = artistPhoto.value.trim();
+                const albums = artistAlbums.value
+                    .split(',')
+                    .map((title) => title.trim())
+                    .filter(Boolean)
+                    .map((title) => ({ title }));
+                const popularSongs = getSelectedSongTitlesFromPicker();
+                const popularSongIds = getSelectedSongIdsFromPicker();
+
+                if (!name || !photo) {
+                    showToast('Заполните имя и фото артиста', 'warn');
+                    return;
+                }
+
+                try {
+                    new URL(photo);
+                } catch {
+                    showToast('Ссылка на фото некорректна', 'warn');
+                    return;
+                }
+
+                const artists = getArtistsState();
+                let savedArtist = null;
+                if (editId) {
+                    const target = artists.find((item) => item.id === editId);
+                    if (!target) return;
+                    if (!isUuid(target.id)) {
+                        target.id = createUuid();
+                    }
+                    target.name = name;
+                    target.photo = photo;
+                    target.albums = albums;
+                    target.popularSongs = popularSongs;
+                    savedArtist = target;
+                    showToast('Карточка артиста обновлена');
+                } else {
+                    savedArtist = {
+                        id: createUuid(),
+                        name,
+                        photo,
+                        albums,
+                        popularSongs
+                    };
+                    artists.push(savedArtist);
+                    showToast('Артист добавлен');
+                }
+
+                saveJson(ARTISTS_STATE_KEY, artists);
+
+                if (savedArtist) {
+                    try {
+                        await upsertArtistToSupabase(savedArtist);
+                        await replaceArtistTracksInSupabase(savedArtist.id, popularSongIds);
+                    } catch (error) {
+                        showToast('Артист сохранен локально, но не синхронизирован с Supabase', 'warn');
+                    }
+                }
+
+                renderArtists();
+                resetArtistForm();
+            });
+
+            songSearch.addEventListener('input', renderSongs);
+            artistSearch.addEventListener('input', renderArtists);
+
+            reloadSongsBtn.addEventListener('click', () => {
+                renderSongs();
+                renderSongPicker();
+                showToast('Список треков обновлен');
+            });
+
+            if (userUploadSearch) {
+                userUploadSearch.addEventListener('input', renderUserUploads);
+            }
+
+            if (reloadUserUploadsBtn) {
+                reloadUserUploadsBtn.addEventListener('click', async () => {
+                    try {
+                        await syncFromSupabase();
+                        renderUserUploads();
+                        showToast('Пользовательские треки обновлены');
+                    } catch (e) {
+                        showToast('Ошибка при обновлении пользовательских треков', 'warn');
+                    }
+                });
+            }
+
+            resetArtistFormBtn.addEventListener('click', () => {
+                resetArtistForm();
+                showToast('Форма артиста очищена');
+            });
+
+            authForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const login = String(authLogin.value || '').trim();
+                const password = String(authPassword.value || '');
+
+                if (login !== ADMIN_LOGIN || password !== ADMIN_PASSWORD) {
+                    showToast('Неверный логин или пароль', 'danger');
+                    return;
+                }
+
+                isAuthorized = true;
+                sessionStorage.setItem(AUTH_SESSION_KEY, '1');
+                applyAuthUiState();
+                showToast('Вход выполнен');
+                await bootstrapAppAfterLogin();
+            });
+
+            authLogoutBtn.addEventListener('click', () => {
+                isAuthorized = false;
+                sessionStorage.removeItem(AUTH_SESSION_KEY);
+                authPassword.value = '';
+                applyAuthUiState();
+                showToast('Вы вышли из админки');
+            });
+
+            downloadScriptBtn.addEventListener('click', () => {
+                const payload = {
+                    [ADMIN_ADDED_SONGS_KEY]: getAdminAddedSongs(),
+                    [ARTISTS_STATE_KEY]: getArtistsState(),
+                    [SONG_SECTION_OVERRIDES_KEY]: getSectionOverrides(),
+                    [HIDDEN_SONG_IDS_KEY]: getHiddenIds(),
+                    [ADMIN_SONG_CATALOG_KEY]: ensureCatalog()
+                };
+
+                const script = [
+                    '// WMusic admin export',
+                    '(function(){',
+                    '  const data = ' + JSON.stringify(payload, null, 2) + ';',
+                    '  Object.keys(data).forEach((key) => {',
+                    '    localStorage.setItem(key, JSON.stringify(data[key]));',
+                    '  });',
+                    '  console.log("WMusic admin state imported");',
+                    '})();'
+                ].join('\n');
+
+                const blob = new Blob([script], { type: 'application/javascript' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'wmusic-admin-export.js';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                showToast('Экспорт готов: wmusic-admin-export.js');
+            });
+
+            isAuthorized = sessionStorage.getItem(AUTH_SESSION_KEY) === '1';
+            applyAuthUiState();
+            if (isAuthorized) {
+                bootstrapAppAfterLogin();
+            }
+        })();
+    </script>
+</body>
+</html>
